@@ -5,998 +5,143 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>香港巴士即時到站查詢</title>
   <style>
-    :root {
-      --kmb-red: #E31836;
-      --ctb-yellow: #FFC72C;
-      --ctb-blue: #002B49;
-      --nlb-green: #007A3D;
-      --bg-color: #F4F6F8;
-      --card-bg: #FFFFFF;
-      --text-main: #333333;
-      --text-sub: #777777;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    .app-container {
-      width: 100%;
-      max-width: 480px;
-      background-color: var(--card-bg);
-      min-height: 100vh;
-      box-shadow: 0 0 15px rgba(0,0,0,0.05);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background-color: var(--kmb-red);
-      color: white;
-      padding: 14px 16px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    header.theme-ctb {
-      background-color: var(--ctb-yellow);
-      color: var(--ctb-blue);
-    }
-
-    header.theme-nlb {
-      background-color: var(--nlb-green);
-      color: white;
-    }
-
-    .header-content {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .header-title-group {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      word-break: break-word;
-      white-space: normal;
-    }
-
-    .header-main-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-      line-height: 1.3;
-    }
-
-    .header-sub-title {
-      font-size: 0.85rem;
-      opacity: 0.9;
-      margin-top: 2px;
-      line-height: 1.2;
-    }
-
-    .step-panel {
-      padding: 16px;
-      display: none;
-      flex-direction: column;
-      gap: 12px;
-      flex: 1;
-    }
-
-    .step-panel.active {
-      display: flex;
-    }
-
-    h2 {
-      font-size: 1.1rem;
-      color: var(--text-main);
-      margin-bottom: 4px;
-    }
-
-    .btn-option {
-      background: white;
-      border: 2px solid #E2E8F0;
-      border-radius: 8px;
-      padding: 14px 16px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      text-align: left;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .btn-option:hover, .btn-option:active {
-      border-color: var(--kmb-red);
-      background-color: #FFF5F5;
-      color: var(--kmb-red);
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 14px;
-      border: 2px solid #CBD5E0;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      outline: none;
-      text-transform: uppercase;
-    }
-
-    .primary-btn {
-      background-color: var(--kmb-red);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 14px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    .error-card {
-      background-color: #FFF5F5;
-      border: 1px solid #FEB2B2;
-      color: #C53030;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      display: none;
-    }
-
-    .timeline-container {
-      position: relative;
-      padding-left: 24px;
-      margin-top: 8px;
-    }
-
-    .timeline-container::before {
-      content: '';
-      position: absolute;
-      left: 7px;
-      top: 15px;
-      bottom: 25px;
-      width: 3px;
-      background-color: #E2E8F0;
-    }
-
-    .stop-item {
-      position: relative;
-      margin-bottom: 12px;
-      background: white;
-      border: 1px solid #E2E8F0;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .stop-header {
-      padding: 12px 16px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: bold;
-    }
-
-    .stop-dot {
-      position: absolute;
-      left: -21px;
-      top: 16px;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background-color: white;
-      border: 3px solid var(--kmb-red);
-      z-index: 2;
-    }
-
-    .stop-item.expanded {
-      border-color: var(--kmb-red);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .stop-detail-panel {
-      display: none;
-      padding: 12px;
-      background-color: #F8FAFC;
-      border-top: 1px solid #E2E8F0;
-    }
-
-    .stop-item.expanded .stop-detail-panel {
-      display: block;
-    }
-
-    .eta-block {
-      background: white;
-      border: 1px solid #E2E8F0;
-      border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 8px;
-    }
-
-    .eta-block.target-highlight {
-      border: 2px solid var(--kmb-red);
-      background-color: #FFF5F5;
-    }
-
-    .eta-block-title {
-      font-size: 0.85rem;
-      font-weight: bold;
-      color: var(--text-sub);
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .badge-target {
-      background-color: var(--kmb-red);
-      color: white;
-      font-size: 0.75rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-
-    .badge-op {
-      font-size: 0.7rem;
-      padding: 1px 4px;
-      border-radius: 3px;
-      font-weight: bold;
-      margin-right: 4px;
-    }
-
-    .badge-op.kmb { background: #FED7D7; color: #9B2C2C; }
-    .badge-op.ctb { background: #FEFCBF; color: #744210; }
-    .badge-op.nlb { background: #C6F6D5; color: #22543D; }
-
-    .warning-box {
-      font-size: 0.8rem;
-      color: #C53030;
-      background: #FFF5F5;
-      padding: 6px 8px;
-      border-radius: 4px;
-      margin-bottom: 8px;
-      border: 1px solid #FEB2B2;
-    }
-
-    .eta-list-row {
-      display: flex;
-      gap: 8px;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .eta-pill {
-      flex: 1;
-      min-width: 80px;
-      background: #EDF2F7;
-      padding: 6px;
-      border-radius: 4px;
-      text-align: center;
-    }
-
-    .eta-block.target-highlight .eta-pill {
-      background: #FED7D7;
-    }
-
-    .eta-time {
-      font-size: 0.95rem;
-      font-weight: bold;
-      color: var(--text-main);
-    }
-
-    .eta-wait {
-      font-size: 0.75rem;
-      color: var(--text-sub);
-    }
-
-    .meta-info {
-      font-size: 0.85rem;
-      color: var(--text-sub);
-      text-align: center;
-      margin-top: 8px;
-    }
-
-    #loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      z-index: 100;
-    }
-
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 5px solid #FFF;
-      border-bottom-color: var(--kmb-red);
-      border-radius: 50%;
-      animation: rotation 1s linear infinite;
-      margin-bottom: 16px;
-    }
-
-    @keyframes rotation {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .nav-back {
-      background: none;
-      border: none;
-      color: inherit;
-      font-size: 1.2rem;
-      cursor: pointer;
-      padding-right: 4px;
-    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f5f5f7; color: #1d1d1f; }
+    h1 { font-size: 1.5rem; text-align: center; margin-bottom: 20px; }
+    .search-box { display: flex; gap: 8px; margin-bottom: 20px; }
+    select, input, button { padding: 12px; font-size: 1rem; border: 1px solid #ccc; border-radius: 8px; }
+    input { flex: 1; text-transform: uppercase; }
+    button { background-color: #0071e3; color: white; border: none; cursor: pointer; font-weight: 600; }
+    button:hover { background-color: #0077ed; }
+    .card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 12px; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; color: white; margin-bottom: 8px; }
+    .badge-CTB { background-color: #0055a5; }
+    .badge-KMB { background-color: #e2001a; }
+    .badge-NLB { background-color: #f39c12; }
+    .error { color: #d70015; background: #ffe5e7; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+    .eta-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+    .eta-item:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <header id="main-header">
-      <div class="header-content">
-        <button id="btn-back" class="nav-back" style="display:none;" onclick="goBack()">←</button>
-        <div class="header-title-group">
-          <div id="header-main" class="header-main-title">香港巴士即時到站查詢</div>
-          <div id="header-sub" class="header-sub-title" style="display:none;"></div>
-        </div>
-      </div>
-    </header>
+  <h1>香港巴士即時到站</h1>
 
-    <!-- 第一頁：選擇機構 -->
-    <div id="step-1" class="step-panel active">
-      <h2>請選擇交通機構</h2>
-      <button class="btn-option" onclick="selectOperator('KMB')">
-        <span>九龍巴士 (KMB)</span>
-        <span>→</span>
-      </button>
-      <button class="btn-option" onclick="selectOperator('CTB')">
-        <span>城巴 (Citybus)</span>
-        <span>→</span>
-      </button>
-      <button class="btn-option" onclick="selectOperator('NLB')">
-        <span>新大嶼山巴士 (NLB)</span>
-        <span>→</span>
-      </button>
-    </div>
-
-    <!-- 第二頁：輸入路線 -->
-    <div id="step-2" class="step-panel">
-      <h2 id="step-2-title">輸入路線號碼</h2>
-      <input type="text" id="route-input" placeholder="例如：73X, A21, 3M, 101" />
-      <button class="primary-btn" onclick="submitRoute()">查詢路線</button>
-      <div id="step-2-error" class="error-card"></div>
-    </div>
-
-    <!-- 第三頁：選擇方向 -->
-    <div id="step-3" class="step-panel">
-      <h2>選擇班次與目的地</h2>
-      <div id="bound-list" style="display:flex; flex-direction:column; gap:12px;"></div>
-    </div>
-
-    <!-- 第四頁：車站時間線列表 -->
-    <div id="step-4" class="step-panel">
-      <h2>請點擊車站查看實時到站時間</h2>
-      <div class="timeline-container" id="stops-timeline"></div>
-      <div id="update-timer" class="meta-info">--</div>
-    </div>
+  <div class="search-box">
+    <select id="operatorSelect">
+      <option value="CTB">城巴 (CTB)</option>
+      <option value="KMB">九巴/龍運 (KMB)</option>
+    </select>
+    <input type="text" id="routeInput" placeholder="輸入路線 (如 A11, 720, A42)" />
+    <button onclick="handleSearch()">查詢</button>
   </div>
 
-  <!-- Loading Overlay -->
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-    <div id="loading-text">正在讀取數據...</div>
-    <div id="loading-timer" style="margin-top:8px; font-size:0.9rem; color:#DDD;">已等待 0.0 秒</div>
-  </div>
+  <div id="output"></div>
 
   <script>
-    let currentOperator = 'KMB';
-    let currentStep = 1;
+    // 核心通用 API 請求 (含底層清洗與 422 靜默降級)
+    async function apiFetch(operator, endpoint) {
+      // 1. 底層洗淨：強制作大寫處理
+      const cleanOp = operator.trim().toUpperCase();
+      let url = '';
 
-    let selectedRoute = '';
-    let selectedBound = ''; 
-    let selectedServiceType = '1';
-    let selectedRouteInfo = null;
-    let isJointRoute = false;
-
-    let routeStops = [];
-    let secondaryStopsMap = new Map(); 
-    let expandedStopIndex = null;
-
-    let autoRefreshTimer = null;
-    let loadingInterval = null;
-    let loadingStartTime = 0;
-
-    const API_KMB_BASE = "https://data.etabus.gov.hk/v1/transport/kmb";
-    const API_CTB_BASE = "https://data.etabus.gov.hk/v1/transport/citybus-nwfb";
-    const API_NLB_BASE = "https://rt.data.gov.hk/v1/transport/nlb";
-
-    const PROXY_LIST = [
-      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-    ];
-
-    function getOpName(op) {
-      const names = { KMB: '九龍巴士', CTB: '城巴', NLB: '新大嶼山巴士' };
-      return names[op] || op;
-    }
-
-    function showLoading(msg = "正在載入數據...") {
-      document.getElementById('loading-text').innerText = msg;
-      document.getElementById('loading-overlay').style.display = 'flex';
-      loadingStartTime = Date.now();
-      document.getElementById('loading-timer').innerText = "已等待 0.0 秒";
-      
-      clearInterval(loadingInterval);
-      loadingInterval = setInterval(() => {
-        const elapsed = ((Date.now() - loadingStartTime) / 1000).toFixed(1);
-        document.getElementById('loading-timer').innerText = `已等待 ${elapsed} 秒`;
-      }, 100);
-    }
-
-    function hideLoading() {
-      document.getElementById('loading-overlay').style.display = 'none';
-      clearInterval(loadingInterval);
-    }
-
-    function hideStep2Error() {
-      const errBox = document.getElementById('step-2-error');
-      errBox.style.display = 'none';
-      errBox.innerText = '';
-    }
-
-    function showStep2Error(msg) {
-      const errBox = document.getElementById('step-2-error');
-      errBox.style.display = 'block';
-      errBox.innerText = msg;
-    }
-
-    async function apiFetch(url, timeoutMs = 6000) {
-      let lastStatusText = "";
-
-      // 1. 優先嘗試直連 API
-      try {
-        const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), timeoutMs);
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(tid);
-
-        if (res.ok) {
-          return await res.json();
-        } else {
-          lastStatusText = `HTTP ${res.status} (${res.statusText || 'Error'})`;
-        }
-      } catch (err) {
-        lastStatusText = err.name === 'AbortError' ? "連線超時" : "網路或 CORS 阻擋";
+      if (cleanOp === 'CTB') {
+        url = `https://data.etabus.gov.hk/v1/transport/citybus-nwfb/${endpoint}`;
+      } else if (cleanOp === 'KMB') {
+        url = `https://data.etabus.gov.hk/v1/transport/kmb/${endpoint}`;
       }
-
-      // 2. 直連失敗時，進入 Proxy 備用降級機制
-      for (const proxyGen of PROXY_LIST) {
-        try {
-          const proxyUrl = proxyGen(url);
-          const controller = new AbortController();
-          const tid = setTimeout(() => controller.abort(), timeoutMs);
-          const res = await fetch(proxyUrl, { signal: controller.signal });
-          clearTimeout(tid);
-
-          if (res.ok) {
-            return await res.json();
-          }
-        } catch (err) {
-          continue;
-        }
-      }
-
-      throw new Error(`連線失敗 [${lastStatusText}]`);
-    }
-
-    function updateHeader() {
-      const mainTitle = document.getElementById('header-main');
-      const subTitle = document.getElementById('header-sub');
-      const headerEl = document.getElementById('main-header');
-
-      headerEl.className = '';
-      if (currentOperator === 'CTB') headerEl.classList.add('theme-ctb');
-      if (currentOperator === 'NLB') headerEl.classList.add('theme-nlb');
-
-      if (currentStep === 1) {
-        mainTitle.innerText = "香港巴士即時到站查詢";
-        subTitle.style.display = 'none';
-      } else if (currentStep === 2) {
-        mainTitle.innerText = `${getOpName(currentOperator)} (${currentOperator})`;
-        subTitle.style.display = 'none';
-      } else if (currentStep === 3) {
-        mainTitle.innerText = `${currentOperator} ${selectedRoute}`;
-        subTitle.innerText = "請選擇行駛方向";
-        subTitle.style.display = 'block';
-      } else if (currentStep === 4) {
-        mainTitle.innerText = `${currentOperator} ${selectedRoute}`;
-        const jointTag = isJointRoute ? " [過海聯營線]" : "";
-        subTitle.innerText = `${selectedRouteInfo.typeText}：${selectedRouteInfo.orig} 往 ${selectedRouteInfo.dest}${jointTag}`;
-        subTitle.style.display = 'block';
-      }
-    }
-
-    function goToStep(step) {
-      currentStep = step;
-      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-      document.getElementById(`step-${step}`).classList.add('active');
-      document.getElementById('btn-back').style.display = step > 1 ? 'block' : 'none';
-
-      updateHeader();
-
-      if (step !== 4 && autoRefreshTimer) {
-        clearInterval(autoRefreshTimer);
-        autoRefreshTimer = null;
-      }
-    }
-
-    function goBack() {
-      if (currentStep > 1) goToStep(currentStep - 1);
-    }
-
-    function selectOperator(op) {
-      currentOperator = op;
-      hideStep2Error();
-      goToStep(2);
-    }
-
-    function checkJointRoute(routeNum) {
-      if (currentOperator === 'NLB') return false;
-      return /^([1369]\d{2})$/.test(routeNum);
-    }
-
-    async function checkRouteExistsInOp(op, route) {
-      try {
-        if (op === 'KMB') {
-          const data = await apiFetch(`${API_KMB_BASE}/route/`, 4000);
-          return (data.data || []).some(r => r.route === route);
-        } else if (op === 'CTB') {
-          const data = await apiFetch(`${API_CTB_BASE}/route/ctb/${route}`, 4000);
-          return !!(data.data && data.data.route);
-        } else if (op === 'NLB') {
-          const data = await apiFetch(`${API_NLB_BASE}/stop.php?action=route`, 4000);
-          return (data.routes || []).some(r => r.routeNo === route);
-        }
-      } catch (e) {
-        return false;
-      }
-      return false;
-    }
-
-    async function submitRoute() {
-      hideStep2Error();
-      const rawInput = document.getElementById('route-input').value;
-      const input = rawInput.replace(/\s+/g, '').toUpperCase();
-
-      if (!input) {
-        showStep2Error("請輸入路線號碼！");
-        return;
-      }
-
-      document.getElementById('route-input').value = input;
-      selectedRoute = input;
-      isJointRoute = checkJointRoute(selectedRoute);
-      
-      showLoading(`正在搜尋 ${getOpName(currentOperator)} 路線 ${selectedRoute}...`);
-
-      let primarySuccess = false;
-      let primaryErrorMsg = "";
 
       try {
-        if (currentOperator === 'KMB') {
-          await loadKmbRouteBounds();
-          primarySuccess = true;
-        } else if (currentOperator === 'CTB') {
-          await loadCtbRouteBounds();
-          primarySuccess = true;
-        } else if (currentOperator === 'NLB') {
-          await loadNlbRouteBounds();
-          primarySuccess = true;
-        }
-      } catch (e) {
-        primarySuccess = false;
-        primaryErrorMsg = e.message;
-      }
-
-      if (primarySuccess) {
-        hideLoading();
-        goToStep(3);
-        return;
-      }
-
-      // 若為連線問題而非「無路線」，直接呈現精確錯誤碼
-      if (primaryErrorMsg.includes("HTTP")) {
-        hideLoading();
-        showStep2Error(`⚠️ 數據讀取受阻：${primaryErrorMsg}。請稍後重試。`);
-        return;
-      }
-
-      // 當前機構查無資料，觸發全公司背景靜默掃描
-      showLoading(`於 ${getOpName(currentOperator)} 查無路線，正在掃描其他公車公司...`);
-
-      const otherOps = ['KMB', 'CTB', 'NLB'].filter(op => op !== currentOperator);
-      let foundOp = null;
-
-      for (const op of otherOps) {
-        const exists = await checkRouteExistsInOp(op, selectedRoute);
-        if (exists) {
-          foundOp = op;
-          break;
-        }
-      }
-
-      hideLoading();
-
-      if (foundOp) {
-        const doSwitch = confirm(`${getOpName(currentOperator)} 查無路線 [${selectedRoute}]。\n\n但我們於【${getOpName(foundOp)}】找到了該路線！\n是否為您自動切換至【${getOpName(foundOp)}】並顯示結果？`);
-        if (doSwitch) {
-          selectOperator(foundOp);
-          document.getElementById('route-input').value = selectedRoute;
-          submitRoute();
-        } else {
-          showStep2Error(`[${selectedRoute}] 於 ${getOpName(currentOperator)} 無服務。`);
-        }
-      } else {
-        showStep2Error(`⚠️ [${selectedRoute}] 於九巴、城巴及大嶼山巴士均無服務，請確認號碼重新輸入。`);
-      }
-    }
-
-    async function loadKmbRouteBounds() {
-      const data = await apiFetch(`${API_KMB_BASE}/route/`);
-      const routes = (data.data || []).filter(r => r.route === selectedRoute);
-      if (routes.length === 0) throw new Error("無路線");
-
-      const container = document.getElementById('bound-list');
-      container.innerHTML = '';
-
-      routes.forEach(r => {
-        const btn = document.createElement('button');
-        btn.className = 'btn-option';
-        const dirText = r.bound === 'O' ? 'outbound' : 'inbound';
-        const typeLabel = r.service_type === '1' ? '常規班次' : `特別班次 ${r.service_type}`;
+        const response = await fetch(url);
         
-        btn.innerHTML = `<span>[${typeLabel}] 往 ${r.dest_tc} (由 ${r.orig_tc})</span><span>→</span>`;
-        btn.onclick = () => selectDirection(dirText, r.service_type, {
-          typeText: typeLabel, orig: r.orig_tc, dest: r.dest_tc
-        });
-        container.appendChild(btn);
-      });
-    }
-
-    async function loadCtbRouteBounds() {
-      const data = await apiFetch(`${API_CTB_BASE}/route/ctb/${selectedRoute}`);
-      if (!data.data || !data.data.route) throw new Error("無路線");
-
-      const container = document.getElementById('bound-list');
-      container.innerHTML = '';
-
-      const r = data.data;
-      const bounds = [
-        { dir: 'outbound', label: `往 ${r.dest_tc} (由 ${r.orig_tc})`, orig: r.orig_tc, dest: r.dest_tc },
-        { dir: 'inbound', label: `往 ${r.orig_tc} (由 ${r.dest_tc})`, orig: r.dest_tc, dest: r.orig_tc }
-      ];
-
-      bounds.forEach(b => {
-        const btn = document.createElement('button');
-        btn.className = 'btn-option';
-        btn.innerHTML = `<span>[常規班次] ${b.label}</span><span>→</span>`;
-        btn.onclick = () => selectDirection(b.dir, '1', {
-          typeText: '常規班次', orig: b.orig, dest: b.dest
-        });
-        container.appendChild(btn);
-      });
-    }
-
-    async function loadNlbRouteBounds() {
-      const data = await apiFetch(`${API_NLB_BASE}/stop.php?action=route`);
-      const routeObj = data.routes ? data.routes.find(r => r.routeNo === selectedRoute) : null;
-      if (!routeObj) throw new Error("無 NLB 路線");
-
-      selectedRouteInfo = { routeId: routeObj.routeId };
-
-      const container = document.getElementById('bound-list');
-      container.innerHTML = '';
-
-      const btn1 = document.createElement('button');
-      btn1.className = 'btn-option';
-      btn1.innerHTML = `<span>往 ${routeObj.routeName_c.split('>')[1] || routeObj.routeName_c}</span><span>→</span>`;
-      btn1.onclick = () => selectDirection('1', '1', {
-        typeText: '常規班次', orig: routeObj.routeName_c.split('>')[0], dest: routeObj.routeName_c.split('>')[1] || routeObj.routeName_c
-      });
-      container.appendChild(btn1);
-    }
-
-    async function selectDirection(bound, serviceType, infoObj) {
-      selectedBound = bound;
-      selectedServiceType = serviceType;
-      selectedRouteInfo = { ...selectedRouteInfo, ...infoObj };
-
-      showLoading(`正在載入全線車站...`);
-
-      try {
-        if (currentOperator === 'KMB') {
-          await fetchKmbStops();
-        } else if (currentOperator === 'CTB') {
-          await fetchCtbStops();
-        } else if (currentOperator === 'NLB') {
-          await fetchNlbStops();
+        // 2. 靜默降級：將 422 (Unprocessable) 及 404 視為「該機構無此路線」
+        if (response.status === 422 || response.status === 404) {
+          return { success: false, notFound: true };
+        }
+        
+        if (!response.ok) {
+          throw new Error(`HTTP Error ${response.status}`);
         }
 
-        secondaryStopsMap.clear();
-        if (isJointRoute) {
-          fetchSecondaryOperatorStopsSilently();
-        }
-
-        renderTimeline();
-        hideLoading();
-        goToStep(4);
-
-        if(autoRefreshTimer) clearInterval(autoRefreshTimer);
-        autoRefreshTimer = setInterval(() => {
-          if (expandedStopIndex !== null) {
-            fetchAndRenderETAs(expandedStopIndex);
-          }
-        }, 15000);
-
-      } catch (e) {
-        hideLoading();
-        alert("載入站點數據失敗： " + e.message);
-      }
-    }
-
-    async function fetchKmbStops() {
-      const routeStopsData = await apiFetch(`${API_KMB_BASE}/route-stop/${selectedRoute}/${selectedBound}/${selectedServiceType}`);
-      const rawStops = routeStopsData.data || [];
-      const stopPromises = rawStops.map(s => apiFetch(`${API_KMB_BASE}/stop/${s.stop}`));
-      const stopDetails = await Promise.all(stopPromises);
-
-      routeStops = rawStops.map((s, index) => ({
-        seq: parseInt(s.seq),
-        stopId: s.stop,
-        name: stopDetails[index].data ? stopDetails[index].data.name_tc : "未知車站"
-      }));
-    }
-
-    async function fetchCtbStops() {
-      const ctbDir = selectedBound === 'outbound' ? 'outbound' : 'inbound';
-      const routeStopsData = await apiFetch(`${API_CTB_BASE}/route-stop/ctb/${selectedRoute}/${ctbDir}`);
-      const rawStops = routeStopsData.data || [];
-      const stopPromises = rawStops.map(s => apiFetch(`${API_CTB_BASE}/stop/${s.stop}`));
-      const stopDetails = await Promise.all(stopPromises);
-
-      routeStops = rawStops.map((s, index) => ({
-        seq: parseInt(s.seq),
-        stopId: s.stop,
-        name: stopDetails[index].data ? stopDetails[index].data.name_tc : "未知車站"
-      }));
-    }
-
-    async function fetchNlbStops() {
-      const data = await apiFetch(`${API_NLB_BASE}/stop.php?action=routeStop&routeId=${selectedRouteInfo.routeId}`);
-      const rawStops = data.stops || [];
-      routeStops = rawStops.map((s, index) => ({
-        seq: index + 1,
-        stopId: s.stopId,
-        name: s.stopName_c
-      }));
-    }
-
-    async function fetchSecondaryOperatorStopsSilently() {
-      const targetOp = currentOperator === 'KMB' ? 'CTB' : 'KMB';
-      try {
-        if (targetOp === 'CTB') {
-          const ctbDir = selectedBound === 'outbound' ? 'outbound' : 'inbound';
-          const routeStopsData = await apiFetch(`${API_CTB_BASE}/route-stop/ctb/${selectedRoute}/${ctbDir}`, 3000);
-          const rawStops = routeStopsData.data || [];
-          const stopPromises = rawStops.map(s => apiFetch(`${API_CTB_BASE}/stop/${s.stop}`, 3000));
-          const stopDetails = await Promise.all(stopPromises);
-
-          stopDetails.forEach((sDetail, idx) => {
-            if (sDetail.data) {
-              secondaryStopsMap.set(sDetail.data.name_tc, rawStops[idx].stop);
-            }
-          });
-        } else {
-          const routeStopsData = await apiFetch(`${API_KMB_BASE}/route-stop/${selectedRoute}/${selectedBound}/${selectedServiceType}`, 3000);
-          const rawStops = routeStopsData.data || [];
-          const stopPromises = rawStops.map(s => apiFetch(`${API_KMB_BASE}/stop/${s.stop}`, 3000));
-          const stopDetails = await Promise.all(stopPromises);
-
-          stopDetails.forEach((sDetail, idx) => {
-            if (sDetail.data) {
-              secondaryStopsMap.set(sDetail.data.name_tc, rawStops[idx].stop);
-            }
-          });
-        }
+        const resData = await response.json();
+        return { success: true, data: resData.data };
       } catch (err) {
-        console.warn("對手聯營站點加載超時/失敗");
+        return { success: false, error: err.message };
       }
     }
 
-    function renderTimeline() {
-      const container = document.getElementById('stops-timeline');
-      container.innerHTML = '';
-      expandedStopIndex = null;
+    // 多機構跨區自動連環掃描
+    async function handleSearch() {
+      const output = document.getElementById('output');
+      const primaryOp = document.getElementById('operatorSelect').value;
+      const rawRoute = document.getElementById('routeInput').value;
 
-      routeStops.forEach((st, index) => {
-        const item = document.createElement('div');
-        item.className = 'stop-item';
-        item.id = `stop-item-${index}`;
+      // 輸入清洗
+      const route = rawRoute.trim().toUpperCase();
+      if (!route) {
+        output.innerHTML = `<div class="error">請輸入路線號碼。</div>`;
+        return;
+      }
 
-        item.innerHTML = `
-          <div class="stop-dot"></div>
-          <div class="stop-header" onclick="toggleStop(${index})">
-            <span>${st.seq}. ${st.name}</span>
-            <span id="stop-arrow-${index}">▼</span>
-          </div>
-          <div class="stop-detail-panel" id="stop-detail-${index}">
-            <div id="stop-eta-content-${index}">正在載入到站時間...</div>
+      output.innerHTML = `<div class="card">搜尋中...</div>`;
+
+      // 查詢順序：先查使用者選擇的機構，若無資料則自動切換至另一個機構
+      const scanOrder = primaryOp === 'CTB' ? ['CTB', 'KMB'] : ['KMB', 'CTB'];
+
+      for (const op of scanOrder) {
+        const result = await apiFetch(op, `route/${op}/${route}`);
+
+        if (result.success && result.data) {
+          renderRouteInfo(op, route, result.data);
+          return; // 找到路線，中斷掃描
+        }
+      }
+
+      // 若所有機構皆回傳 422 / 404
+      output.innerHTML = `<div class="error">查無路線 ${route}，請確認號碼是否正確。</div>`;
+    }
+
+    // 渲染路線資訊與實時 ETA
+    async function renderRouteInfo(operator, route, routeData) {
+      const output = document.getElementById('output');
+      
+      output.innerHTML = `
+        <div class="card">
+          <span class="badge badge-${operator}">${operator === 'CTB' ? '城巴 CTB' : '九巴/龍運 KMB'}</span>
+          <h2>路線 ${route}</h2>
+          <p>起點：${routeData.orig_tc || routeData.orig_en} ➔ 終點：${routeData.dest_tc || routeData.dest_en}</p>
+          <button onclick="loadETA('${operator}', '${route}')">讀取即時到站時間</button>
+        </div>
+        <div id="etaResult"></div>
+      `;
+    }
+
+    // 讀取即時班次 (ETA)
+    async function loadETA(operator, route) {
+      const etaResult = document.getElementById('etaResult');
+      etaResult.innerHTML = `<div class="card">載入班次中...</div>`;
+
+      const result = await apiFetch(operator, `eta/${operator}/${route}/1`);
+
+      if (!result.success || !result.data || result.data.length === 0) {
+        etaResult.innerHTML = `<div class="card">目前暫無實時到站班次資料。</div>`;
+        return;
+      }
+
+      // 提取前 3 班車時間
+      const etaItems = result.data.slice(0, 3).map(item => {
+        const time = item.eta ? new Date(item.eta).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' }) : '未定';
+        const dest = item.dest_tc || item.dest_en || '目的地';
+        const rmk = item.rmk_tc ? `(${item.rmk_tc})` : '';
+        return `
+          <div class="eta-item">
+            <span>往 ${dest} ${rmk}</span>
+            <strong>${time}</strong>
           </div>
         `;
-        container.appendChild(item);
-      });
+      }).join('');
 
-      document.getElementById('update-timer').innerText = '--';
-    }
-
-    function toggleStop(index) {
-      const targetItem = document.getElementById(`stop-item-${index}`);
-      const isAlreadyExpanded = targetItem.classList.contains('expanded');
-
-      document.querySelectorAll('.stop-item').forEach(el => el.classList.remove('expanded'));
-      document.querySelectorAll('[id^="stop-arrow-"]').forEach(el => el.innerText = '▼');
-
-      if (!isAlreadyExpanded) {
-        targetItem.classList.add('expanded');
-        document.getElementById(`stop-arrow-${index}`).innerText = '▲';
-        expandedStopIndex = index;
-        fetchAndRenderETAs(index);
-      } else {
-        expandedStopIndex = null;
-      }
-    }
-
-    async function fetchAndRenderETAs(targetIndex) {
-      const detailContainer = document.getElementById(`stop-eta-content-${targetIndex}`);
-      
-      const prevIndex = targetIndex > 0 ? targetIndex - 1 : null;
-      const currIndex = targetIndex;
-      const nextIndex = targetIndex < routeStops.length - 1 ? targetIndex + 1 : null;
-
-      const fetchTargets = [];
-      if (prevIndex !== null) fetchTargets.push({ type: 'prev', ...routeStops[prevIndex] });
-      fetchTargets.push({ type: 'curr', ...routeStops[currIndex] });
-      if (nextIndex !== null) fetchTargets.push({ type: 'next', ...routeStops[nextIndex] });
-
-      let htmlContent = '';
-
-      for (const target of fetchTargets) {
-        const isTarget = target.type === 'curr';
-        const titleLabel = target.type === 'prev' ? `前一站：${target.name}` :
-                          (target.type === 'next' ? `後一站：${target.name}` : `${target.name}`);
-
-        let combinedEtas = [];
-        let warningMessage = "";
-
-        try {
-          const primaryEtas = await fetchSingleETA(currentOperator, target.stopId);
-          combinedEtas.push(...primaryEtas);
-        } catch (e) {
-          warningMessage += `[${currentOperator} 數據暫時無法載入] `;
-        }
-
-        if (isJointRoute) {
-          const secondaryOp = currentOperator === 'KMB' ? 'CTB' : 'KMB';
-          const secondaryStopId = secondaryStopsMap.get(target.name);
-
-          if (secondaryStopId) {
-            try {
-              const secEtas = await apiFetchWithTimeout(fetchSingleETA(secondaryOp, secondaryStopId), 3000);
-              combinedEtas.push(...secEtas);
-            } catch (e) {
-              warningMessage += `[${secondaryOp} 數據超時或無法載入] `;
-            }
-          }
-        }
-
-        combinedEtas.sort((a, b) => a.timestamp - b.timestamp);
-
-        htmlContent += `
-          <div class="eta-block ${isTarget ? 'target-highlight' : ''}">
-            <div class="eta-block-title">
-              <span>${target.seq}. ${titleLabel}</span>
-              ${isTarget ? '<span class="badge-target">主力查詢</span>' : ''}
-            </div>
-            ${warningMessage ? `<div class="warning-box">⚠️ ${warningMessage}</div>` : ''}
-            <div class="eta-list-row">
-        `;
-
-        if (combinedEtas.length === 0) {
-          htmlContent += `<div style="font-size:0.85rem; color:#888; padding:4px;">暫無實時到站數據</div>`;
-        } else {
-          combinedEtas.slice(0, 4).forEach(e => {
-            const timeStr = e.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const waitMins = Math.max(0, Math.round((e.timestamp - new Date()) / 60000));
-            const opClass = e.op.toLowerCase();
-
-            htmlContent += `
-              <div class="eta-pill">
-                <div><span class="badge-op ${opClass}">${e.op}</span><span class="eta-time">${timeStr}</span></div>
-                <div class="eta-wait">${waitMins}分鐘</div>
-              </div>
-            `;
-          });
-        }
-
-        htmlContent += `</div></div>`;
-      }
-
-      detailContainer.innerHTML = htmlContent;
-      updateTimestamp();
-    }
-
-    async function apiFetchWithTimeout(promise, ms) {
-      let timeoutId;
-      const timeoutPromise = new Promise((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Timeout')), ms);
-      });
-      return Promise.race([promise, timeoutPromise]).then(res => {
-        clearTimeout(timeoutId);
-        return res;
-      });
-    }
-
-    async function fetchSingleETA(operator, stopId) {
-      if (operator === 'KMB') {
-        const targetDir = selectedBound === 'outbound' ? 'O' : 'I';
-        const res = await apiFetch(`${API_KMB_BASE}/eta/${stopId}/${selectedRoute}/${selectedServiceType}`, 4000);
-        const list = (res.data || []).filter(e => e.dir === targetDir && e.eta).slice(0, 3);
-        return list.map(e => ({ op: '九巴', timestamp: new Date(e.eta) }));
-      } 
-      
-      if (operator === 'CTB') {
-        const res = await apiFetch(`${API_CTB_BASE}/eta/ctb/${stopId}/${selectedRoute}`, 4000);
-        const list = (res.data || []).filter(e => e.eta).slice(0, 3);
-        return list.map(e => ({ op: '城巴', timestamp: new Date(e.eta) }));
-      }
-
-      if (operator === 'NLB') {
-        const res = await apiFetch(`${API_NLB_BASE}/stop.php?action=estimatedArrivals&routeId=${selectedRouteInfo.routeId}&stopId=${stopId}`, 4000);
-        const list = (res.estimatedArrivals || []).slice(0, 3);
-        return list.map(e => ({ op: 'NLB', timestamp: new Date(e.estimatedArrival) }));
-      }
-
-      return [];
-    }
-
-    function updateTimestamp() {
-      const now = new Date();
-      document.getElementById('update-timer').innerText = `最後更新時間：${now.toLocaleTimeString()}`;
+      etaResult.innerHTML = `<div class="card"><h3>即時班次</h3>${etaItems}</div>`;
     }
   </script>
 </body>
