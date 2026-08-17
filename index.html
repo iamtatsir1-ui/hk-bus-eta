@@ -501,4 +501,56 @@ async function toggle(i){
     targets=[i-1,i,i+1].filter(idx=>idx>=0&&idx<stops.length);
   }
   
-  document.querySelectorAll('.stop').forEach
+  document.querySelectorAll('.stop').forEach(x=>x.classList.remove('expanded','target-selected'));
+  document.querySelectorAll('[id^=arr]').forEach(x=>x.textContent='▼');
+  
+  targets.forEach(idx=>{
+    let el=$('stop'+idx);
+    if(el){
+      el.classList.add('expanded');
+      $('arr'+idx).textContent='▲';
+      if(idx===i)el.classList.add('target-selected');
+    }
+  });
+  
+  let dir=routeItem.bound==='outbound'?'O':'I';
+  await Promise.all(targets.map(async idx=>{
+    let s=stops[idx],d=$('detail'+idx);
+    if(!d)return;
+    let isTarget=(idx===i);
+    try{
+      let r=await get(`${API}/eta/${s.stop}/${routeItem.route}/${routeItem.service}`);
+      let e=upcoming((r.data||[]).filter(x=>x.eta&&x.dir===dir));
+      let badgeBg=isTarget?'background:var(--red);font-weight:bold;':'background:#64748b;';
+      let badgeText=isTarget?'🎯 點選車站':'鄰近車站';
+      let targetClass=isTarget?'eta target':'eta';
+      d.innerHTML=`
+        <div class="${targetClass}">
+          <div class="eta-title">
+            <span>${s.seq}. ${s.name}</span>
+            <span class="badge" style="${badgeBg}">${badgeText}</span>
+          </div>
+          <div class="etas">
+            ${e.length?e.slice(0,3).map(x=>`
+              <div class="pill">
+                <div class="time">${format(x.eta)}</div>
+                <div class="wait">${mins(x.eta)}分鐘</div>
+              </div>
+            `).join(''):'<span class="text-sm text-slate-500">暫無實時到站數據</span>'}
+          </div>
+        </div>
+      `;
+    }catch(err){
+      d.textContent='暫未能讀取到站資料';
+    }
+  }));
+  $('updated').textContent='最後更新時間：'+new Date().toLocaleTimeString();
+}
+
+refreshHomeEtas();
+setInterval(()=>{
+  if(step===2)refreshHomeEtas();
+},15000);
+</script>
+</body>
+</html>
