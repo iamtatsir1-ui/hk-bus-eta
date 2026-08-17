@@ -234,14 +234,14 @@ function checkEasterEgg(){
   }
 }
 
-/* 計算相愛時間天數與年月號 */
+/* 計算相愛時間天數與年月號 (含第1天包容性計算：+1天) */
 function calcLoveStats(){
   const start=new Date(2014, 11, 27); // 2014年12月27日 (月份0-indexed)
   const now=new Date();
   
-  // 計算相距總天數
+  // 計算相距總天數 (包含當天，故 +1)
   const diffMs=now.getTime()-start.getTime();
-  const totalDays=Math.floor(diffMs/(1000*60*60*24));
+  const totalDays=Math.floor(diffMs/(1000*60*60*24)) + 1;
   
   // 計算 年、月、日
   let y=now.getFullYear()-start.getFullYear();
@@ -273,9 +273,9 @@ function openLoveExpress(){
   contentEl.innerHTML=`
     <p class="text-lg font-bold text-rose-600 border-b border-rose-100 pb-2">心愛的ding3ding1：</p>
     <p class="py-1">你已跟心愛老公相愛了 <span class="text-2xl love-days-highlight">${stats.totalDays}</span> 天<br>
-    <span class="text-sm font-semibold text-rose-500">［即相愛 ${stats.y} 年 ${stats.m} 月 ${stats.d} 日］</span></p>
+    <span class="text-sm font-semibold text-rose-500">［即相愛了 ${stats.y} 年 ${stats.m} 個月零 ${stats.d} 日］</span></p>
     <p class="py-1 text-slate-700">如想了解更多，請立即打電話給老公！</p>
-    <p class="text-right text-rose-600 font-bold pt-2">心愛老公上。</p>
+    <p class="text-right text-rose-600 font-bold pt-2">心愛老公上</p>
   `;
   
   setStep(6);
