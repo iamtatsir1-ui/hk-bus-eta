@@ -479,6 +479,14 @@ async function choose(x){
     $('headSub').textContent=`${x.desc}：${x.orig} 往 ${x.dest}`;
     $('headSub').style.display='block';
     setStep(4);
+    
+    // 設定每 15 秒自動刷新已選車站的即時到站時間與尚餘分鐘
+    clearInterval(timer);
+    timer=setInterval(()=>{
+      if(step===4 && currentSelectedStop!==null){
+        fetchStopEta(currentSelectedStop);
+      }
+    },15000);
   }catch(e){
     alert('載入車站失敗');
   }finally{loading(false)}
@@ -497,14 +505,9 @@ function renderStops(){
   `).join('');
 }
 
-async function toggle(i){
-  if(currentSelectedStop===i){
-    document.querySelectorAll('.stop').forEach(x=>x.classList.remove('expanded','target-selected'));
-    document.querySelectorAll('[id^=arr]').forEach(x=>x.textContent='▼');
-    currentSelectedStop=null;
-    return;
-  }
-  currentSelectedStop=i;
+/* 獨立更新車站到站時間與尚餘分鐘函數 */
+async function fetchStopEta(i){
+  if(i===null || step!==4) return;
   let targets=[];
   if(i===0){
     targets=[0,1].filter(idx=>idx<stops.length);
@@ -513,18 +516,6 @@ async function toggle(i){
   }else{
     targets=[i-1,i,i+1].filter(idx=>idx>=0&&idx<stops.length);
   }
-  
-  document.querySelectorAll('.stop').forEach(x=>x.classList.remove('expanded','target-selected'));
-  document.querySelectorAll('[id^=arr]').forEach(x=>x.textContent='▼');
-  
-  targets.forEach(idx=>{
-    let el=$('stop'+idx);
-    if(el){
-      el.classList.add('expanded');
-      $('arr'+idx).textContent='▲';
-      if(idx===i)el.classList.add('target-selected');
-    }
-  });
   
   let dir=routeItem.bound==='outbound'?'O':'I';
   await Promise.all(targets.map(async idx=>{
@@ -558,6 +549,38 @@ async function toggle(i){
     }
   }));
   $('updated').textContent='最後更新時間：'+new Date().toLocaleTimeString();
+}
+
+async function toggle(i){
+  if(currentSelectedStop===i){
+    document.querySelectorAll('.stop').forEach(x=>x.classList.remove('expanded','target-selected'));
+    document.querySelectorAll('[id^=arr]').forEach(x=>x.textContent='▼');
+    currentSelectedStop=null;
+    return;
+  }
+  currentSelectedStop=i;
+  let targets=[];
+  if(i===0){
+    targets=[0,1].filter(idx=>idx<stops.length);
+  }else if(i===stops.length-1){
+    targets=[stops.length-2,stops.length-1].filter(idx=>idx>=0);
+  }else{
+    targets=[i-1,i,i+1].filter(idx=>idx>=0&&idx<stops.length);
+  }
+  
+  document.querySelectorAll('.stop').forEach(x=>x.classList.remove('expanded','target-selected'));
+  document.querySelectorAll('[id^=arr]').forEach(x=>x.textContent='▼');
+  
+  targets.forEach(idx=>{
+    let el=$('stop'+idx);
+    if(el){
+      el.classList.add('expanded');
+      $('arr'+idx).textContent='▲';
+      if(idx===i)el.classList.add('target-selected');
+    }
+  });
+  
+  await fetchStopEta(i);
 }
 
 refreshHomeEtas();
