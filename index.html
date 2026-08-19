@@ -21,6 +21,7 @@
 <style>
 :root{--red:#e31836;--ink:#1e293b}
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{margin:0;background:#f4f6f8;color:#333;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft JhengHei",sans-serif}
 .app{max-width:480px;min-height:100vh;margin:auto;background:#fff;box-shadow:0 0 15px #00000012}
 header{position:sticky;top:0;z-index:10;padding:14px 16px;background:#2d3748;color:#fff;box-shadow:0 2px 5px #0002}
@@ -46,7 +47,7 @@ header.love{background:linear-gradient(135deg, #b8860b, #d4af37, #aa771c)}
 .tag{font-size:.75rem;padding:3px 6px;border-radius:4px;color:#fff;background:var(--red);white-space:nowrap}
 .timeline{position:relative;margin:8px 0 0 24px}
 .timeline:before{content:"";position:absolute;left:-17px;top:15px;bottom:25px;width:3px;background:#e2e8f0}
-.stop{position:relative;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px;transition:all .2s ease}
+.stop{position:relative;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px;transition:all .2s ease;scroll-margin-top:20px}
 .stop.target-selected{border:2px solid var(--red)!important;box-shadow:0 3px 10px rgba(227,24,54,0.2)}
 .stop.target-selected .stop-head{background:#fff0f2;color:var(--red);font-weight:800}
 .stop.target-selected .dot{border-color:var(--red)!important;background:var(--red)!important}
@@ -263,7 +264,6 @@ function calcLoveStats(){
   
   if(d<0){
     m--;
-    // 上一個月的天數
     const prevMonthLastDay=new Date(now.getFullYear(), now.getMonth(), 0).getDate();
     d+=prevMonthLastDay;
   }
@@ -551,6 +551,12 @@ async function fetchStopEta(i){
   $('updated').textContent='最後更新時間：'+new Date().toLocaleTimeString();
 }
 
+/* 平滑滾動並將點選車站置於螢幕垂直中央 */
+function scrollToCenter(el){
+  if(!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 async function toggle(i){
   if(currentSelectedStop===i){
     document.querySelectorAll('.stop').forEach(x=>x.classList.remove('expanded','target-selected'));
@@ -579,6 +585,12 @@ async function toggle(i){
       if(idx===i)el.classList.add('target-selected');
     }
   });
+  
+  // 展開車站後，平滑將選取的車站置中於螢幕垂直中央
+  const targetEl = $('stop' + i);
+  if(targetEl){
+    setTimeout(()=>scrollToCenter(targetEl), 50);
+  }
   
   await fetchStopEta(i);
 }
